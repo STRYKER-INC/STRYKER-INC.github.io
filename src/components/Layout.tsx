@@ -2,15 +2,25 @@
 import React, { useEffect } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { useApp } from "@/context/AppContext";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { sidebarOpen, setSidebarOpen, isMobile } = useApp();
+  const { sidebarOpen, setSidebarOpen, isMobile, user, logout } = useApp();
+  const navigate = useNavigate();
 
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
@@ -29,6 +39,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMobile, sidebarOpen, setSidebarOpen]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <div className="h-full flex">
@@ -52,17 +67,43 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-full overflow-hidden">
         {/* Header */}
-        <header className="h-16 flex items-center px-6 border-b glass">
-          <button
-            data-sidebar-trigger
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="h-10 w-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-          >
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-          <div className="ml-4">
-            <h1 className="text-xl font-medium tracking-tight">Noteverse</h1>
+        <header className="h-16 flex items-center justify-between px-6 border-b glass">
+          <div className="flex items-center">
+            <button
+              data-sidebar-trigger
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="h-10 w-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            >
+              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+            <div className="ml-4">
+              <h1 className="text-xl font-medium tracking-tight">Noteverse</h1>
+            </div>
           </div>
+
+          {/* User menu */}
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-2 hover:bg-secondary p-2 rounded-md transition-colors">
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  {user.username.charAt(0).toUpperCase()}
+                </div>
+                <span className="hidden md:inline-block font-medium">{user.username}</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer" onClick={() => {}}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </header>
 
         {/* Content */}

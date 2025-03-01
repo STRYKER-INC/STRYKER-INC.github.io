@@ -33,6 +33,12 @@ const INITIAL_IMAGES: ImageItem[] = [
   },
 ];
 
+interface User {
+  id: string;
+  username: string;
+  email: string;
+}
+
 interface AppContextType {
   notes: Note[];
   images: ImageItem[];
@@ -42,6 +48,8 @@ interface AppContextType {
   selectedNote: Note | null;
   sidebarOpen: boolean;
   isMobile: boolean;
+  user: User | null;
+  isAuthenticated: boolean;
   addNote: (note: Omit<Note, "id" | "createdAt" | "updatedAt">) => void;
   updateNote: (id: string, note: Partial<Note>) => void;
   deleteNote: (id: string) => void;
@@ -53,6 +61,9 @@ interface AppContextType {
   setContentType: (type: ContentType) => void;
   setSelectedNote: (note: Note | null) => void;
   setSidebarOpen: (open: boolean) => void;
+  login: (username: string, password: string) => Promise<boolean>;
+  signup: (username: string, email: string, password: string) => Promise<boolean>;
+  logout: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -74,6 +85,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [user, setUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem("noteverse-user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const isAuthenticated = user !== null;
 
   // Check if mobile on mount and when window resizes
   useEffect(() => {
@@ -101,6 +117,84 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     localStorage.setItem("noteverse-images", JSON.stringify(images));
   }, [images]);
+
+  // Save user to localStorage whenever it changes
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("noteverse-user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("noteverse-user");
+    }
+  }, [user]);
+
+  // User authentication functions
+  // In a real app, these would connect to a backend
+  const login = async (username: string, password: string): Promise<boolean> => {
+    // For demo: Get users from localStorage
+    const users = JSON.parse(localStorage.getItem("noteverse-users") || "[]");
+    
+    // Find user with case-insensitive username match
+    const foundUser = users.find((u: any) => 
+      u.username.toLowerCase() === username.toLowerCase()
+    );
+    
+    if (foundUser && foundUser.password === password) {
+      // Don't include password in the user state
+      const { password: _, ...userWithoutPassword } = foundUser;
+      setUser(userWithoutPassword);
+      toast.success("Login successful");
+      return true;
+    }
+    
+    toast.error("Invalid username or password");
+    return false;
+  };
+  
+  const signup = async (username: string, email: string, password: string): Promise<boolean> => {
+    // Get existing users
+    const users = JSON.parse(localStorage.getItem("noteverse-users") || "[]");
+    
+    // Check if username or email already exists (case-insensitive for username)
+    const usernameExists = users.some((u: any) => 
+      u.username.toLowerCase() === username.toLowerCase()
+    );
+    
+    const emailExists = users.some((u: any) => u.email === email);
+    
+    if (usernameExists) {
+      toast.error("Username already exists");
+      return false;
+    }
+    
+    if (emailExists) {
+      toast.error("Email already exists");
+      return false;
+    }
+    
+    // Create new user
+    const newUser = {
+      id: `user-${Date.now()}`,
+      username,
+      email,
+      password, // In a real app, this would be hashed
+    };
+    
+    // Add to users list
+    users.push(newUser);
+    localStorage.setItem("noteverse-users", JSON.stringify(users));
+    
+    // Log in the user (without password in state)
+    const { password: _, ...userWithoutPassword } = newUser;
+    setUser(userWithoutPassword);
+    
+    toast.success("Account created successfully");
+    return true;
+  };
+  
+  const logout = () => {
+    setUser(null);
+    toast.success("Logged out successfully");
+  };
 
   const addNote = (note: Omit<Note, "id" | "createdAt" | "updatedAt">) => {
     const newNote: Note = {
@@ -171,6 +265,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         selectedNote,
         sidebarOpen,
         isMobile,
+        user,
+        isAuthenticated,
         addNote,
         updateNote,
         deleteNote,
@@ -182,6 +278,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setContentType,
         setSelectedNote,
         setSidebarOpen,
+        login,
+        signup,
+        logout,
       }}
     >
       {children}
