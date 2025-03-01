@@ -29,6 +29,7 @@ const Login = () => {
     try {
       const success = await login(username, password);
       if (success) {
+        toast.success("Login successful");
         navigate("/");
       }
     } catch (error) {
@@ -46,7 +47,7 @@ const Login = () => {
         <div className="p-8 rounded-xl shadow-xl bg-card/80 backdrop-blur-sm border">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold tracking-tight mb-2">Welcome back</h1>
-            <p className="text-muted-foreground">Sign in to your Noteverse account</p>
+            <p className="text-muted-foreground">Sign in to your Stryker Utility account</p>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">

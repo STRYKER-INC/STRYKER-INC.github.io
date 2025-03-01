@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
@@ -35,7 +34,6 @@ const Signup = () => {
   const { signup } = useApp();
   const navigate = useNavigate();
 
-  // Check password strength
   useEffect(() => {
     const requirements = {
       hasMinLength: password.length >= 8,
@@ -45,7 +43,6 @@ const Signup = () => {
       hasSpecialChar: /[^A-Za-z0-9]/.test(password),
     };
     
-    // Calculate score based on requirements
     const score = Object.values(requirements).filter(Boolean).length;
     
     setPasswordStrength({
@@ -57,26 +54,22 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
     if (!username || !email || !password || !confirmPassword) {
       toast.error("Please fill in all fields");
       return;
     }
     
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast.error("Please enter a valid email");
       return;
     }
     
-    // Validate password strength
     if (passwordStrength.score < 3) {
       toast.error("Password is too weak");
       return;
     }
     
-    // Validate passwords match
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
@@ -87,6 +80,7 @@ const Signup = () => {
     try {
       const success = await signup(username, email, password);
       if (success) {
+        toast.success("Account created successfully");
         navigate("/");
       }
     } catch (error) {
@@ -97,7 +91,6 @@ const Signup = () => {
     }
   };
 
-  // Render password strength indicator
   const renderPasswordStrength = () => {
     const { score } = passwordStrength;
     
@@ -208,11 +201,10 @@ const Signup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted/50">
       <div className="w-full max-w-md">
-        {/* Card with glassmorphism effect */}
         <div className="p-8 rounded-xl shadow-xl bg-card/80 backdrop-blur-sm border">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold tracking-tight mb-2">Create an account</h1>
-            <p className="text-muted-foreground">Sign up to start using Noteverse</p>
+            <p className="text-muted-foreground">Sign up to start using Stryker Utility</p>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-5">

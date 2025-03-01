@@ -77,7 +77,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
             <div className="ml-4">
-              <h1 className="text-xl font-medium tracking-tight">Noteverse</h1>
+              <h1 className="text-xl font-medium tracking-tight">Stryker Utility</h1>
             </div>
           </div>
 

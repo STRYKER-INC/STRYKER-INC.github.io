@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { NoteCard } from "@/components/NoteCard";
 import { ImageCard } from "@/components/ImageCard";
@@ -9,6 +9,7 @@ import { useApp } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const Index = () => {
   const {
@@ -29,11 +30,13 @@ const Index = () => {
   // Handle creating a new note
   const handleNewNote = () => {
     setSelectedNote(null); // This will open the editor with a blank note
+    toast.info("Create a new note");
   };
 
   // Handle creating a new image
   const handleNewImage = () => {
     setIsImageUploaderOpen(true);
+    toast.info("Upload a new image");
   };
 
   return (

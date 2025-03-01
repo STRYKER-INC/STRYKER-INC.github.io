@@ -118,6 +118,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ open, onOpenChange
       category,
     });
     
+    toast.success("Image uploaded successfully");
     handleClose();
   };
 
