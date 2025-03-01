@@ -8,10 +8,9 @@ import { ImageUploader } from "@/components/ImageUploader";
 import { useApp } from "@/context/AppContext";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Image as ImageIcon } from "lucide-react";
-import { AppProvider } from "@/context/AppContext";
 import { cn } from "@/lib/utils";
 
-const NoteversePage = () => {
+const Index = () => {
   const {
     notes,
     images,
@@ -122,12 +121,5 @@ const NoteversePage = () => {
     </Layout>
   );
 };
-
-// Wrap the page with the AppProvider
-const Index = () => (
-  <AppProvider>
-    <NoteversePage />
-  </AppProvider>
-);
 
 export default Index;

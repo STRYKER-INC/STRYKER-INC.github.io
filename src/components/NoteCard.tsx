@@ -57,6 +57,12 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, view }) => {
     }
   };
 
+  // Helper function to ensure we have a proper Date object
+  const getFormattedDate = (dateValue: Date | string) => {
+    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+    return format(date, "MMM d, yyyy");
+  };
+
   return (
     <>
       <div 
@@ -107,8 +113,8 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, view }) => {
           {/* Footer */}
           <div className="flex items-center mt-3 pt-3 border-t text-xs text-muted-foreground">
             <Calendar size={14} className="mr-1" />
-            <time dateTime={note.updatedAt.toISOString()}>
-              {format(new Date(note.updatedAt), "MMM d, yyyy")}
+            <time dateTime={new Date(note.updatedAt).toISOString()}>
+              {getFormattedDate(note.updatedAt)}
             </time>
           </div>
         </div>
