@@ -1,11 +1,18 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Eye, EyeOff, Key, User, AlertCircle, Check } from "lucide-react";
 import { toast } from "sonner";
+import { Eye, EyeOff, UserPlus } from "lucide-react";
+
+interface PasswordStrength {
+  score: number;
+  message: string;
+  color: string;
+}
 
 const Signup = () => {
   const [username, setUsername] = useState("");
@@ -13,22 +20,11 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState<{
-    score: number;
-    hasMinLength: boolean;
-    hasUppercase: boolean;
-    hasLowercase: boolean;
-    hasNumber: boolean;
-    hasSpecialChar: boolean;
-  }>({
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>({
     score: 0,
-    hasMinLength: false,
-    hasUppercase: false,
-    hasLowercase: false,
-    hasNumber: false,
-    hasSpecialChar: false,
+    message: "Too weak",
+    color: "bg-destructive",
   });
   
   const { signup } = useApp();
@@ -47,7 +43,8 @@ const Signup = () => {
     
     setPasswordStrength({
       score,
-      ...requirements,
+      message: getPasswordStrengthMessage(score),
+      color: getPasswordStrengthColor(score),
     });
   }, [password]);
 
@@ -84,8 +81,8 @@ const Signup = () => {
         navigate("/");
       }
     } catch (error) {
-      toast.error("An error occurred. Please try again.");
-      console.error(error);
+      console.error("Signup error:", error);
+      toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -94,232 +91,198 @@ const Signup = () => {
   const renderPasswordStrength = () => {
     const { score } = passwordStrength;
     
-    let colorClass = "bg-gray-300";
-    let strengthText = "Very weak";
-    
-    if (score >= 1) {
-      colorClass = "bg-red-500";
-      strengthText = "Weak";
-    }
-    if (score >= 3) {
-      colorClass = "bg-yellow-500";
-      strengthText = "Medium";
-    }
-    if (score >= 4) {
-      colorClass = "bg-green-400";
-      strengthText = "Strong";
-    }
-    if (score >= 5) {
-      colorClass = "bg-green-600";
-      strengthText = "Very strong";
-    }
-    
     return (
       <div className="mt-2">
-        <div className="flex justify-between items-center mb-1">
-          <div className="flex space-x-1">
-            {[1, 2, 3, 4, 5].map((index) => (
-              <div
-                key={index}
-                className={`h-1 w-10 rounded-full ${
-                  score >= index ? colorClass : "bg-gray-300"
-                }`}
-              ></div>
-            ))}
-          </div>
-          <span className="text-xs text-muted-foreground">{strengthText}</span>
+        <div className="flex justify-between mb-1">
+          <span className="text-xs font-medium text-muted-foreground">
+            Password strength: {passwordStrength.message}
+          </span>
+        </div>
+        <div className="w-full bg-muted rounded-full h-1.5">
+          <div 
+            className={`h-1.5 rounded-full ${passwordStrength.color}`} 
+            style={{ width: `${(score / 5) * 100}%` }}
+          ></div>
         </div>
         
-        {password.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            <div className="flex items-center gap-1 text-xs">
-              {passwordStrength.hasMinLength ? (
-                <Check size={14} className="text-green-500" />
-              ) : (
-                <AlertCircle size={14} className="text-muted-foreground" />
-              )}
-              <span className={passwordStrength.hasMinLength ? "text-green-500" : "text-muted-foreground"}>
-                At least 8 characters
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-xs">
-              {passwordStrength.hasUppercase ? (
-                <Check size={14} className="text-green-500" />
-              ) : (
-                <AlertCircle size={14} className="text-muted-foreground" />
-              )}
-              <span className={passwordStrength.hasUppercase ? "text-green-500" : "text-muted-foreground"}>
-                Uppercase letter
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-xs">
-              {passwordStrength.hasLowercase ? (
-                <Check size={14} className="text-green-500" />
-              ) : (
-                <AlertCircle size={14} className="text-muted-foreground" />
-              )}
-              <span className={passwordStrength.hasLowercase ? "text-green-500" : "text-muted-foreground"}>
-                Lowercase letter
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-xs">
-              {passwordStrength.hasNumber ? (
-                <Check size={14} className="text-green-500" />
-              ) : (
-                <AlertCircle size={14} className="text-muted-foreground" />
-              )}
-              <span className={passwordStrength.hasNumber ? "text-green-500" : "text-muted-foreground"}>
-                Number
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-xs">
-              {passwordStrength.hasSpecialChar ? (
-                <Check size={14} className="text-green-500" />
-              ) : (
-                <AlertCircle size={14} className="text-muted-foreground" />
-              )}
-              <span className={passwordStrength.hasSpecialChar ? "text-green-500" : "text-muted-foreground"}>
-                Special character
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-xs">
-              {password === confirmPassword && confirmPassword ? (
-                <Check size={14} className="text-green-500" />
-              ) : (
-                <AlertCircle size={14} className="text-muted-foreground" />
-              )}
-              <span className={password === confirmPassword && confirmPassword ? "text-green-500" : "text-muted-foreground"}>
-                Passwords match
-              </span>
-            </div>
-          </div>
-        )}
+        <div className="mt-3 space-y-1">
+          <PasswordRequirement 
+            text="At least 8 characters" 
+            met={password.length >= 8} 
+          />
+          <PasswordRequirement 
+            text="At least one uppercase letter" 
+            met={/[A-Z]/.test(password)} 
+          />
+          <PasswordRequirement 
+            text="At least one lowercase letter" 
+            met={/[a-z]/.test(password)} 
+          />
+          <PasswordRequirement 
+            text="At least one number" 
+            met={/[0-9]/.test(password)} 
+          />
+          <PasswordRequirement 
+            text="At least one special character" 
+            met={/[^A-Za-z0-9]/.test(password)} 
+          />
+        </div>
       </div>
     );
   };
+  
+  const toggleShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted/50">
-      <div className="w-full max-w-md">
-        <div className="p-8 rounded-xl shadow-xl bg-card/80 backdrop-blur-sm border">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold tracking-tight mb-2">Create an account</h1>
-            <p className="text-muted-foreground">Sign up to start using Stryker Utility</p>
-          </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <div className="relative">
-                <Input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Choose a username"
-                  className="pl-10"
-                  disabled={isLoading}
-                />
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              </div>
+    <>
+      <div className="animated-background"></div>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted/50">
+        <div className="w-full max-w-md">
+          <div className="p-8 rounded-xl shadow-xl bg-card/80 backdrop-blur-sm border">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold tracking-tight mb-2">Create an account</h1>
+              <p className="text-muted-foreground">Sign up to start using Stryker Utility</p>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  placeholder="Choose a username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  className="pl-10"
                   disabled={isLoading}
                 />
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               </div>
-            </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pr-10"
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={toggleShowPassword}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
+                
+                {password && renderPasswordStrength()}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="pr-10"
+                    disabled={isLoading}
+                  />
+                </div>
+                
+                {password && confirmPassword && (
+                  <div className="mt-2">
+                    {password !== confirmPassword ? (
+                      <p className="text-xs text-destructive">Passwords do not match</p>
+                    ) : (
+                      <p className="text-xs text-green-500">Passwords match</p>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              <Button 
+                type="submit" 
+                className="w-full mt-6" 
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <span className="animate-spin h-4 w-4 mr-2 border-2 border-t-transparent rounded-full"></span>
+                    Creating account...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center">
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Create Account
+                  </span>
+                )}
+              </Button>
+            </form>
             
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Create a password"
-                  className="pl-10"
-                  disabled={isLoading}
-                />
-                <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <button 
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  tabIndex={-1}
+            <div className="mt-6 text-center text-sm">
+              <p className="text-muted-foreground">
+                Already have an account?{" "}
+                <Link
+                  to="/login"
+                  className="font-medium text-primary hover:text-primary/80 underline-offset-4 hover:underline"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              {renderPasswordStrength()}
+                  Sign in
+                </Link>
+              </p>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <div className="relative">
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm your password"
-                  className="pl-10"
-                  disabled={isLoading}
-                />
-                <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <button 
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  tabIndex={-1}
-                >
-                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full mt-2" 
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
-                  Creating account...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <UserPlus className="h-4 w-4" />
-                  Sign up
-                </span>
-              )}
-            </Button>
-          </form>
-          
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link to="/login" className="text-primary hover:underline font-medium">
-                Sign in
-              </Link>
-            </p>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
+};
+
+// Helper component for password requirements
+const PasswordRequirement = ({ text, met }: { text: string; met: boolean }) => (
+  <div className="flex items-center gap-2">
+    <div className={`w-1.5 h-1.5 rounded-full ${met ? 'bg-green-500' : 'bg-muted-foreground/50'}`}></div>
+    <span className={`text-xs ${met ? 'text-green-500' : 'text-muted-foreground'}`}>{text}</span>
+  </div>
+);
+
+// Helper functions for password strength
+const getPasswordStrengthMessage = (score: number): string => {
+  if (score === 0) return "Too weak";
+  if (score === 1) return "Weak";
+  if (score === 2) return "Fair";
+  if (score === 3) return "Good";
+  if (score === 4) return "Strong";
+  return "Very strong";
+};
+
+const getPasswordStrengthColor = (score: number): string => {
+  if (score < 2) return "bg-destructive";
+  if (score < 3) return "bg-yellow-500";
+  if (score < 4) return "bg-blue-500";
+  return "bg-green-500";
 };
 
 export default Signup;
